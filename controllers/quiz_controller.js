@@ -191,37 +191,48 @@ exports.check = function (req, res, next) {
 var score = 0;
 
 exports.randomplay =function (req,res,next){
-if(!req.session.score) req.session.score=0;
-    if(!req.session.questions) req.session.questions=[-1];
+    //si no score lo iniciamos en 0
 
+    if (!req.session.questions || req.session.score == null){
+        req.session.score = 0;
+        req.session.questions = [-1];
+    }
+
+    var reiniciar = false;
+    var nuevos = [];
+    var idUsados = [];
+
+    // nos saca todas las preguntas que el id no este en questions
     models.Quiz.count()
-    .then (function(count){
+    .then(function(count) {
         return models.Quiz.findAll({
-            where: {id:{ $notIn: req.session.questions }}
+            where: { id: { $notIn: req.session.questions } }
         })
-    })
 
-    .then(function(quizzes){
-        if(quizzes.length >0) return quizzes[parseInt(Math.random()*quizzes.length)];
-        else
-            return null;
     })
-
-    .then (function(quiz){
-        if(quiz){ 
+    // nos saca el id asociado a la pregunta aleatoria extraida de quizzes
+    .then(function(quizzes) {
+        // si no hya quizzes finaliza
+        if (quizzes.length === 0){
+            //reinicia questions para reiniciar juego aleatorio
+            req.session.questions = 0;
+            res.render('quizzes/random_none', {
+                score: req.session.score
+            })
+        } else {
+            // numero aleatorio entre 1 y el numero de quizzes que hay
+            var numero = parseInt(Math.random() * quizzes.length);
+            // id de la pregunta en la posicion aleatoria
+        }
+        return quizzes[numero];
+    })
+    .then(function(quiz) {
+        if (quiz) {
             req.session.questions.push(quiz.id);
             res.render('quizzes/random_play', {
                 quiz: quiz,
                 score: req.session.score
             });
-        } else {
-            var score= req.session.score;
-            req.session.score=0;
-            req.session.questions=[-1];
-            res.render('/quizzes/random_nomore', {
-                score: score
-            });
-
         }
     })
     .catch(function(error){
