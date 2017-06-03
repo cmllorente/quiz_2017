@@ -191,28 +191,44 @@ exports.check = function (req, res, next) {
 var score = 0;
 
 exports.randomplay =function (req,res,next){
-        if(!req.session.score) req.session.score = 0;
-    if(req.session.score === 0) req.session.yhc = [-1];
+if(!req.session.score) req.session.score=0;
+    if(!req.session.questions) req.session.questions=[-1];
 
-   var answer = req.query.answer || '';
+    models.Quiz.count()
+    .then (function(count){
+        return models.Quiz.findAll({
+            where: {id:{ $notIn: req.session.questions }}
+        })
+    })
 
-    models.Quiz.count({where:{
-            id:{$notIn: req.session.yhc}
-            }})
-    .then(function(c){
-        al = Math.floor(Math.random() * (c - 0)  + 0);
-        return models.Quiz.findAll({where: 
-            { id: {$notIn: req.session.yhc}
-        }})
-        .then(function(quiz){
-        preg = quiz[al];
-        req.session.yhc.push(preg.id);
-        res.render('quizzes/random_play',{
-            quiz: preg,
-            answer: answer,
-            score: req.session.score
-        });});});
-    };
+    .then(function(quizzes){
+        if(quizzes.length >0) return quizzes[parseInt(Math.random()*quizzes.length)];
+        else
+            return null;
+    })
+
+    .then (function(quiz){
+        if(quiz){ 
+            req.session.questions.push(quiz.id);
+            res.render('quizzes/random_play', {
+                quiz: quiz,
+                score: req.session.score
+            });
+        } else {
+            var score= req.session.score;
+            req.session.score=0;
+            req.session.questions=[-1];
+            res.render('/quizzes/random_nomore', {
+                score: score
+            });
+
+        }
+    })
+    .catch(function(error){
+        req.flash('error', 'Error al cargar el Quiz: '+ error.message);
+        next(error);
+    });
+};
 
 
 exports.randomcheck =function (req, res, next){
