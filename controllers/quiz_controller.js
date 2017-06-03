@@ -200,7 +200,7 @@ exports.randomplay =function (req,res,next){
     })
 
     .then(function(quizzes){
-        if(quizzes.length >0) return quizzes[parseint(Math.random()*quizzes.length)];
+        if(quizzes.length >0) return quizzes[parseInt(Math.random()*quizzes.length)];
         else
             return null;
     })
