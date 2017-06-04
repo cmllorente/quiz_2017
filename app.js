@@ -8,6 +8,7 @@ var session = require('express-session');
 var partials = require('express-partials');
 var flash = require('express-flash');
 var methodOverride = require('method-override');
+
 var index = require('./routes/index');
 
 var app = express();

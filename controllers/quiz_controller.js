@@ -8,7 +8,7 @@ exports.load = function (req, res, next, quizId) {
 
     models.Quiz.findById(quizId, {
         include: [
-            models.Tip,
+            {model: models.Tip, include: [{model:models.User, as:'Author'}]},
             {model: models.User, as: 'Author'}
         ]
     })
@@ -218,6 +218,82 @@ exports.check = function (req, res, next) {
 
     res.render('quizzes/result', {
         quiz: req.quiz,
+        result: result,
+        answer: answer
+    });
+};
+
+var score = 0;
+
+exports.randomplay =function (req,res,next){
+    //si no score lo iniciamos en 0
+
+    if (!req.session.questions || req.session.score == null){
+        req.session.score = 0;
+        req.session.questions = [-1];
+    }
+
+    var reiniciar = false;
+    var nuevos = [];
+    var idUsados = [];
+
+    // nos saca todas las preguntas que el id no este en questions
+    models.Quiz.count()
+    .then(function(count) {
+        return models.Quiz.findAll({
+            where: { id: { $notIn: req.session.questions } }
+        })
+
+    })
+    // nos saca el id asociado a la pregunta aleatoria extraida de quizzes
+    .then(function(quizzes) {
+        // si no hya quizzes finaliza
+        if (quizzes.length === 0){
+            //reinicia questions para reiniciar juego aleatorio
+            req.session.questions = 0;
+            res.render('quizzes/random_none', {
+                score: req.session.score
+            })
+        } else {
+            // numero aleatorio entre 1 y el numero de quizzes que hay
+            var numero = parseInt(Math.random() * quizzes.length);
+            // id de la pregunta en la posicion aleatoria
+        }
+        return quizzes[numero];
+    })
+    .then(function(quiz) {
+        if (quiz) {
+            req.session.questions.push(quiz.id);
+            res.render('quizzes/random_play', {
+                quiz: quiz,
+                score: req.session.score
+            });
+        }
+    })
+    .catch(function(error){
+        req.flash('error', 'Error al cargar el Quiz: '+ error.message);
+        next(error);
+    });
+};
+
+
+exports.randomcheck =function (req, res, next){
+    if(!req.session.score) req.session.score =0;
+    if(!req.session.questions) req.session.questions =[-1];
+
+    var answer =req.query.answer || "";
+
+    var result =answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
+    if(result)
+        var score = ++req.session.score;
+    else{ 
+        var score = req.session.score;
+        req.session.score=0;
+        req.session.questions=[-1];
+    }
+
+    res.render('quizzes/random_result', {
+        score: score,
         result: result,
         answer: answer
     });
