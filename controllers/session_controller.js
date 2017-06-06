@@ -93,6 +93,17 @@ exports.adminAndNotMyselfRequired = function(req, res, next){
         res.send(403);    }
 };
 
+exports.adminOrTipCreator = function (req, res, next) {
+
+    var isAdmin  = req.session.user.isAdmin;    //compruebo si el usuario logeado es administrador o no
+    var isCreator = req.tip.AuthorId === req.session.user.id; //compruebo si es usuario logeado es el autor o no del tip
+
+    if (isAdmin || isCreator) { // si es, continuo con los mw
+        next();
+    } else {    //si no es, lanzo error
+        console.log('Ruta prohibida: no es el usuario logeado, ni un administrador.');
+        res.send(403);    }
+};
 
 /*
  * Autenticar un usuario: Comprueba si el usuario esta registrado en users
