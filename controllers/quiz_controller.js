@@ -102,7 +102,7 @@ exports.index = function (req, res, next) {
 // GET /quizzes/:quizId
 exports.show = function (req, res, next) {
 
-    res.render('quizzes/show', {quiz: req.quiz});
+    res.render('quizzes/show.ejs', {quiz: req.quiz});
 };
 
 
@@ -111,7 +111,7 @@ exports.new = function (req, res, next) {
 
     var quiz = {question: "", answer: ""};
 
-    res.render('quizzes/new', {quiz: quiz});
+    res.render('quizzes/new.ejs', {quiz: quiz});
 };
 
 
@@ -139,7 +139,7 @@ exports.create = function (req, res, next) {
             req.flash('error', error.errors[i].value);
         }
 
-        res.render('quizzes/new', {quiz: quiz});
+        res.render('quizzes/new.ejs', {quiz: quiz});
     })
     .catch(function (error) {
         req.flash('error', 'Error al crear un Quiz: ' + error.message);
@@ -151,7 +151,7 @@ exports.create = function (req, res, next) {
 // GET /quizzes/:quizId/edit
 exports.edit = function (req, res, next) {
 
-    res.render('quizzes/edit', {quiz: req.quiz});
+    res.render('quizzes/edit.ejs', {quiz: req.quiz});
 };
 
 
@@ -173,7 +173,7 @@ exports.update = function (req, res, next) {
             req.flash('error', error.errors[i].value);
         }
 
-        res.render('quizzes/edit', {quiz: req.quiz});
+        res.render('quizzes/edit.ejs', {quiz: req.quiz});
     })
     .catch(function (error) {
         req.flash('error', 'Error al editar el Quiz: ' + error.message);
@@ -202,7 +202,7 @@ exports.play = function (req, res, next) {
 
     var answer = req.query.answer || '';
 
-    res.render('quizzes/play', {
+    res.render('quizzes/play.ejs', {
         quiz: req.quiz,
         answer: answer
     });
@@ -216,7 +216,7 @@ exports.check = function (req, res, next) {
 
     var result = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
 
-    res.render('quizzes/result', {
+    res.render('quizzes/result.ejs', {
         quiz: req.quiz,
         result: result,
         answer: answer
